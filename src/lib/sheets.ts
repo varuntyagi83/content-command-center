@@ -201,10 +201,11 @@ export async function clearAndSeedCards(cards: Omit<ContentCard, "comments">[]):
       updatedAt: row.get("updatedAt"),
     }));
 
-  // Delete all rows in reverse order to avoid index shifting
-  for (const row of [...existingRows].reverse()) await row.delete();
+  // Clear entire sheet atomically (single API call — avoids row-shift bugs)
+  await sheet.clear();
+  await sheet.setHeaderRow(CARD_HEADERS);
 
-  // Add seed rows first (c001–c050)
+  // Seed rows first (c001–c050), then custom rows after
   const seedRows = cards.map((card) => ({
     id: card.id,
     title: card.title,
@@ -219,10 +220,8 @@ export async function clearAndSeedCards(cards: Omit<ContentCard, "comments">[]):
     createdAt: card.createdAt,
     updatedAt: card.updatedAt,
   }));
-  await sheet.addRows(seedRows);
 
-  // Then re-append custom cards after (c051, c052, ...)
-  if (customRows.length > 0) await sheet.addRows(customRows);
+  await sheet.addRows([...seedRows, ...customRows]);
 }
 
 export async function getNextCardId(): Promise<string> {
