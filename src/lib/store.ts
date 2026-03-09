@@ -1,143 +1,158 @@
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
 import { ContentCard, ColumnId, Filters } from "./types";
-import { SEED_IDEAS } from "./seed-data";
+import { fetchCards, apiAddCard, apiUpdateCard, apiDeleteCard, apiBulkKeep, apiBulkReject, apiAddComment, apiSeed } from "./api";
+
+type SyncStatus = "idle" | "syncing" | "error";
 
 interface AppState {
   cards: ContentCard[];
-  nextId: number;
   commentAuthor: string;
   viewMode: "kanban" | "list";
   filters: Filters;
+  syncStatus: SyncStatus;
+  lastSync: string;
 
-  // Actions
-  setCommentAuthor: (author: string) => void;
-  setViewMode: (mode: "kanban" | "list") => void;
-  setFilters: (filters: Filters) => void;
-  addCard: (card: Omit<ContentCard, "id" | "status" | "comments" | "createdAt">) => void;
-  updateCard: (id: number, updates: Partial<ContentCard>) => void;
-  deleteCard: (id: number) => void;
-  moveCard: (id: number, status: ColumnId) => void;
-  addComment: (cardId: number, text: string) => void;
-  toggleSelect: (id: number) => void;
-  selectAll: (status: ColumnId, cards: ContentCard[]) => void;
-  bulkKeep: (ids: number[]) => void;
-  bulkReject: (ids: number[]) => void;
-  resetData: () => void;
+  // Init & sync
+  init: () => Promise<void>;
+  refresh: () => Promise<void>;
+
+  // UI
+  setCommentAuthor: (a: string) => void;
+  setViewMode: (m: "kanban" | "list") => void;
+  setFilters: (f: Filters) => void;
+  toggleSelect: (id: string) => void;
+  selectAll: (status: ColumnId) => void;
+
+  // Data operations (hit API then refresh)
+  addCard: (card: Partial<ContentCard>) => Promise<void>;
+  updateCard: (id: string, updates: Partial<ContentCard>) => Promise<void>;
+  deleteCard: (id: string) => Promise<void>;
+  moveCard: (id: string, status: ColumnId) => Promise<void>;
+  addComment: (cardId: string, text: string) => Promise<void>;
+  bulkKeep: () => Promise<void>;
+  bulkReject: () => Promise<void>;
+  resetData: () => Promise<void>;
+
   getFilteredCards: (status: ColumnId) => ContentCard[];
 }
 
-export const useStore = create<AppState>()(
-  persist(
-    (set, get) => ({
-      cards: [...SEED_IDEAS],
-      nextId: 51,
-      commentAuthor: "Varun",
-      viewMode: "kanban",
-      filters: { product: "", platform: "", pillar: "", search: "" },
+export const useStore = create<AppState>()((set, get) => ({
+  cards: [],
+  commentAuthor: "Varun",
+  viewMode: "kanban",
+  filters: { product: "", platform: "", pillar: "", search: "" },
+  syncStatus: "idle",
+  lastSync: "",
 
-      setCommentAuthor: (author) => set({ commentAuthor: author }),
-      setViewMode: (mode) => set({ viewMode: mode }),
-      setFilters: (filters) => set({ filters }),
-
-      addCard: (card) =>
-        set((state) => ({
-          cards: [
-            ...state.cards,
-            {
-              ...card,
-              id: state.nextId,
-              status: "idea" as ColumnId,
-              comments: [],
-              createdAt: new Date().toISOString(),
-            },
-          ],
-          nextId: state.nextId + 1,
-        })),
-
-      updateCard: (id, updates) =>
-        set((state) => ({
-          cards: state.cards.map((c) => (c.id === id ? { ...c, ...updates } : c)),
-        })),
-
-      deleteCard: (id) =>
-        set((state) => ({ cards: state.cards.filter((c) => c.id !== id) })),
-
-      moveCard: (id, status) =>
-        set((state) => ({
-          cards: state.cards.map((c) => (c.id === id ? { ...c, status } : c)),
-        })),
-
-      addComment: (cardId, text) =>
-        set((state) => ({
-          cards: state.cards.map((c) =>
-            c.id === cardId
-              ? {
-                  ...c,
-                  comments: [
-                    ...c.comments,
-                    { author: state.commentAuthor, text, time: new Date().toISOString() },
-                  ],
-                }
-              : c
-          ),
-        })),
-
-      toggleSelect: (id) =>
-        set((state) => ({
-          cards: state.cards.map((c) =>
-            c.id === id ? { ...c, _selected: !c._selected } : c
-          ),
-        })),
-
-      selectAll: (status, filteredCards) =>
-        set((state) => {
-          const ids = new Set(filteredCards.map((c) => c.id));
-          const allSelected = filteredCards.every((c) => c._selected);
-          return {
-            cards: state.cards.map((c) =>
-              ids.has(c.id) ? { ...c, _selected: !allSelected } : c
-            ),
-          };
-        }),
-
-      bulkKeep: (ids) =>
-        set((state) => ({
-          cards: state.cards.map((c) =>
-            ids.includes(c.id) ? { ...c, status: "drafting" as ColumnId, _selected: false } : c
-          ),
-        })),
-
-      bulkReject: (ids) =>
-        set((state) => ({ cards: state.cards.filter((c) => !ids.includes(c.id)) })),
-
-      resetData: () =>
-        set({ cards: [...SEED_IDEAS], nextId: 51 }),
-
-      getFilteredCards: (status) => {
-        const state = get();
-        const { product, platform, pillar, search } = state.filters;
-        return state.cards
-          .filter((c) => c.status === status)
-          .filter((c) => !product || c.products.includes(product))
-          .filter((c) => !platform || c.platforms.includes(platform))
-          .filter((c) => !pillar || c.pillar === pillar)
-          .filter(
-            (c) =>
-              !search ||
-              c.title.toLowerCase().includes(search.toLowerCase()) ||
-              c.description.toLowerCase().includes(search.toLowerCase())
-          );
-      },
-    }),
-    {
-      name: "content-command-center-storage",
-      partialize: (state) => ({
-        cards: state.cards.map(({ _selected, ...rest }) => rest),
-        nextId: state.nextId,
-        commentAuthor: state.commentAuthor,
-        viewMode: state.viewMode,
-      }),
+  init: async () => {
+    set({ syncStatus: "syncing" });
+    try {
+      // Seed if empty
+      await apiSeed();
+      const cards = await fetchCards();
+      set({ cards, syncStatus: "idle", lastSync: new Date().toISOString() });
+    } catch {
+      set({ syncStatus: "error" });
     }
-  )
-);
+  },
+
+  refresh: async () => {
+    try {
+      const cards = await fetchCards();
+      // Preserve local _selected state
+      const selected = new Set(get().cards.filter(c => c._selected).map(c => c.id));
+      set({
+        cards: cards.map(c => ({ ...c, _selected: selected.has(c.id) })),
+        syncStatus: "idle",
+        lastSync: new Date().toISOString(),
+      });
+    } catch {
+      set({ syncStatus: "error" });
+    }
+  },
+
+  setCommentAuthor: (a) => set({ commentAuthor: a }),
+  setViewMode: (m) => set({ viewMode: m }),
+  setFilters: (f) => set({ filters: f }),
+
+  toggleSelect: (id) => set(s => ({
+    cards: s.cards.map(c => c.id === id ? { ...c, _selected: !c._selected } : c),
+  })),
+
+  selectAll: (status) => {
+    const filtered = get().getFilteredCards(status);
+    const allSelected = filtered.every(c => c._selected);
+    const ids = new Set(filtered.map(c => c.id));
+    set(s => ({
+      cards: s.cards.map(c => ids.has(c.id) ? { ...c, _selected: !allSelected } : c),
+    }));
+  },
+
+  addCard: async (card) => {
+    set({ syncStatus: "syncing" });
+    await apiAddCard(card);
+    await get().refresh();
+  },
+
+  updateCard: async (id, updates) => {
+    set({ syncStatus: "syncing" });
+    await apiUpdateCard(id, updates);
+    await get().refresh();
+  },
+
+  deleteCard: async (id) => {
+    set({ syncStatus: "syncing" });
+    await apiDeleteCard(id);
+    await get().refresh();
+  },
+
+  moveCard: async (id, status) => {
+    // Optimistic update
+    set(s => ({
+      cards: s.cards.map(c => c.id === id ? { ...c, status } : c),
+      syncStatus: "syncing",
+    }));
+    await apiUpdateCard(id, { status });
+    await get().refresh();
+  },
+
+  addComment: async (cardId, text) => {
+    set({ syncStatus: "syncing" });
+    await apiAddComment(cardId, get().commentAuthor, text);
+    await get().refresh();
+  },
+
+  bulkKeep: async () => {
+    const ids = get().getFilteredCards("idea").filter(c => c._selected).map(c => c.id);
+    if (!ids.length) return;
+    set({ syncStatus: "syncing" });
+    await apiBulkKeep(ids);
+    await get().refresh();
+  },
+
+  bulkReject: async () => {
+    const ids = get().getFilteredCards("idea").filter(c => c._selected).map(c => c.id);
+    if (!ids.length) return;
+    set({ syncStatus: "syncing" });
+    await apiBulkReject(ids);
+    await get().refresh();
+  },
+
+  resetData: async () => {
+    // Note: this would need a server-side reset endpoint
+    // For now, just refresh
+    await get().refresh();
+  },
+
+  getFilteredCards: (status) => {
+    const { cards, filters } = get();
+    return cards
+      .filter(c => c.status === status)
+      .filter(c => !filters.product || c.products.includes(filters.product))
+      .filter(c => !filters.platform || c.platforms.includes(filters.platform))
+      .filter(c => !filters.pillar || c.pillar === filters.pillar)
+      .filter(c => !filters.search ||
+        c.title.toLowerCase().includes(filters.search.toLowerCase()) ||
+        c.description.toLowerCase().includes(filters.search.toLowerCase()));
+  },
+}));
