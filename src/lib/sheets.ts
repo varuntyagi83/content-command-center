@@ -201,9 +201,16 @@ export async function clearAndSeedCards(cards: Omit<ContentCard, "comments">[]):
       updatedAt: row.get("updatedAt"),
     }));
 
-  // Clear entire sheet atomically (single API call — avoids row-shift bugs)
+  // Clear entire sheet
   await sheet.clear();
-  await sheet.setHeaderRow(CARD_HEADERS);
+
+  // Reset singleton — forces a fresh doc/sheet reference after clear
+  // to avoid stale internal state causing addRows to write at wrong position
+  _doc = null;
+
+  // Get a fresh sheet reference and restore header
+  const freshSheet = await getCardsSheet();
+  await freshSheet.setHeaderRow(CARD_HEADERS);
 
   // Seed rows first (c001–c050), then custom rows after
   const seedRows = cards.map((card) => ({
@@ -221,7 +228,7 @@ export async function clearAndSeedCards(cards: Omit<ContentCard, "comments">[]):
     updatedAt: card.updatedAt,
   }));
 
-  await sheet.addRows([...seedRows, ...customRows]);
+  await freshSheet.addRows([...seedRows, ...customRows]);
 }
 
 export async function getNextCardId(): Promise<string> {
