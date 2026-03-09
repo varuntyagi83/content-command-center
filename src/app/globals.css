@@ -1,0 +1,105 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+:root {
+  --surface: #0a0a0f;
+  --surface-card: #161625;
+  --surface-elevated: #1a1a2e;
+  --surface-border: #2a2a4a;
+  --surface-border-light: #1e1e3a;
+  --accent: #6366f1;
+  --accent-light: #a78bfa;
+  --accent-purple: #7c3aed;
+  --text-primary: #e2e8f0;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--surface);
+  color: var(--text-primary);
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #334155;
+  border-radius: 3px;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.animate-slide-up {
+  animation: slideUp 0.2s ease-out;
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.15s ease-out;
+}
+
+.animate-pulse-slow {
+  animation: pulse 1.5s infinite;
+}
+
+/* Card hover */
+.card-hover {
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+/* Tag base */
+.tag {
+  @apply inline-block px-2 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wider;
+}
+
+/* Button base */
+.btn {
+  @apply border-none cursor-pointer transition-all duration-150 font-sans;
+}
+.btn:hover {
+  filter: brightness(1.15);
+}
+
+/* Checkbox */
+.checkbox-accent {
+  accent-color: var(--accent);
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+/* Column drop zone */
+.col-drop-active {
+  background: var(--surface-elevated) !important;
+}
