@@ -183,12 +183,29 @@ export async function clearAndSeedCards(cards: Omit<ContentCard, "comments">[]):
   const existingRows = await sheet.getRows();
   const seedIds = new Set(cards.map(c => c.id));
 
-  // Only delete rows that belong to the original seed set
-  for (const row of existingRows) {
-    if (seedIds.has(row.get("id"))) await row.delete();
-  }
+  // Save custom cards (not part of original seed) before clearing
+  const customRows = existingRows
+    .filter(row => !seedIds.has(row.get("id")))
+    .map(row => ({
+      id: row.get("id"),
+      title: row.get("title"),
+      description: row.get("description"),
+      products: row.get("products"),
+      platforms: row.get("platforms"),
+      pillar: row.get("pillar"),
+      funnel: row.get("funnel"),
+      priority: row.get("priority"),
+      optimization: row.get("optimization"),
+      status: row.get("status"),
+      createdAt: row.get("createdAt"),
+      updatedAt: row.get("updatedAt"),
+    }));
 
-  const rows = cards.map((card) => ({
+  // Delete all rows
+  for (const row of existingRows) await row.delete();
+
+  // Add seed rows first (c001–c050)
+  const seedRows = cards.map((card) => ({
     id: card.id,
     title: card.title,
     description: card.description,
@@ -202,8 +219,10 @@ export async function clearAndSeedCards(cards: Omit<ContentCard, "comments">[]):
     createdAt: card.createdAt,
     updatedAt: card.updatedAt,
   }));
+  await sheet.addRows(seedRows);
 
-  await sheet.addRows(rows);
+  // Then re-append custom cards after (c051, c052, ...)
+  if (customRows.length > 0) await sheet.addRows(customRows);
 }
 
 export async function getNextCardId(): Promise<string> {
