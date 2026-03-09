@@ -5,7 +5,7 @@ import { COLUMNS, ContentCard } from "@/lib/types";
 import { ProductTag, PlatformTag } from "./Tags";
 interface Props { card: ContentCard; onEdit: () => void; onClose: () => void; }
 export default function CardDetail({ card, onEdit, onClose }: Props) {
-  const { deleteCard, moveCard, addComment, commentAuthor } = useStore();
+  const { deleteCard, moveCard, addComment, deleteComment, commentAuthor } = useStore();
   const [nc, setNc] = useState("");
   const col = COLUMNS.find(c => c.id === card.status);
   const handleComment = async () => { if (!nc.trim()) return; await addComment(card.id, nc.trim()); setNc(""); };
@@ -35,7 +35,13 @@ export default function CardDetail({ card, onEdit, onClose }: Props) {
           <div className="flex flex-col gap-2.5 mb-3">
             {card.comments.map((c, i) => (
               <div key={c.id || i} className="bg-[#0f0f1a] rounded-xl p-3 border border-surface-border-light">
-                <div className="flex justify-between mb-1"><span className="text-xs font-semibold" style={{ color: c.author === "Varun" ? "#a78bfa" : "#f472b6" }}>{c.author}</span><span className="text-[10px] text-[#475569]">{new Date(c.time).toLocaleDateString()}</span></div>
+                <div className="flex justify-between mb-1">
+                  <span className="text-xs font-semibold" style={{ color: c.author === "Varun" ? "#a78bfa" : "#f472b6" }}>{c.author}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[10px] text-[#475569]">{new Date(c.time).toLocaleDateString()}</span>
+                    <button className="text-[10px] text-[#475569] hover:text-[#f87171] transition-colors" onClick={() => deleteComment(c.id)} title="Delete comment">✕</button>
+                  </div>
+                </div>
                 <div className="text-sm text-[#cbd5e1] leading-relaxed">{c.text}</div>
               </div>
             ))}

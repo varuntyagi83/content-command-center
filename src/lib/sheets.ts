@@ -181,6 +181,13 @@ export async function addComment(comment: Comment): Promise<Comment> {
   return comment;
 }
 
+export async function deleteComment(id: string): Promise<void> {
+  const sheet = await getCommentsSheet();
+  const rows = await sheet.getRows();
+  const row = rows.find((r) => r.get("id") === id);
+  if (row) await row.delete();
+}
+
 // ── Seed ─────────────────────────────────────────────────────
 
 export async function clearAndSeedCards(cards: Omit<ContentCard, "comments">[]): Promise<void> {

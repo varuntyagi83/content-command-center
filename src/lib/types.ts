@@ -28,7 +28,7 @@ export type ColumnId = "idea" | "drafting" | "review" | "scheduled" | "published
 export interface Column { id: ColumnId; label: string; color: string; }
 export interface Filters { product: string; platform: string; pillar: string; search: string; }
 
-export const PRODUCTS = ["Voltic", "AdForge", "AI Catalyst"];
+export const PRODUCTS = ["Voltic", "AdForge", "AI Training"];
 export const PLATFORMS = ["LinkedIn", "Twitter/X", "Medium", "Product Hunt", "Indie Hackers"];
 export const PILLARS = ["Building in Public", "Product Tutorials", "Thought Leadership", "Case Studies", "Hot Takes", "Behind the Scenes"];
 export const FUNNEL_STAGES = ["Awareness", "Trust", "Conversion"];
@@ -47,6 +47,6 @@ export const COLUMNS: Column[] = [
 export function getProductColor(p: string) {
   if (p === "Voltic") return { bg: "#6366f120", text: "#818cf8" };
   if (p === "AdForge") return { bg: "#f59e0b20", text: "#fbbf24" };
-  if (p === "AI Catalyst") return { bg: "#10b98120", text: "#34d399" };
+  if (p === "AI Training") return { bg: "#10b98120", text: "#34d399" };
   return { bg: "#1e293b", text: "#94a3b8" };
 }

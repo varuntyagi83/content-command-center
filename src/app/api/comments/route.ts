@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { addComment } from "@/lib/sheets";
+import { addComment, deleteComment } from "@/lib/sheets";
 import { v4 as uuid } from "uuid";
 
 export async function POST(req: NextRequest) {
@@ -15,6 +15,19 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ comment });
   } catch (err: any) {
     console.error("POST /api/comments error:", err);
+    return NextResponse.json({ error: err.message }, { status: 500 });
+  }
+}
+
+export async function DELETE(req: NextRequest) {
+  try {
+    const { searchParams } = new URL(req.url);
+    const id = searchParams.get("id");
+    if (!id) return NextResponse.json({ error: "Missing id" }, { status: 400 });
+    await deleteComment(id);
+    return NextResponse.json({ ok: true });
+  } catch (err: any) {
+    console.error("DELETE /api/comments error:", err);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }

@@ -57,6 +57,10 @@ export async function apiAddComment(cardId: string, author: string, text: string
   return data.comment;
 }
 
+export async function apiDeleteComment(id: string): Promise<void> {
+  await fetch(`${BASE}/comments?id=${id}`, { method: "DELETE" });
+}
+
 export async function apiSeed(): Promise<void> {
   await fetch(`${BASE}/seed`, { method: "POST" });
 }

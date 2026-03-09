@@ -24,7 +24,7 @@ export default function Header({ onNewIdea }: { onNewIdea: () => void }) {
             <h1 className="text-lg font-bold tracking-tight" style={{ background: "linear-gradient(135deg, #6366f1, #a78bfa)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>Content Command Center</h1>
             <div className={`sync-dot ${syncStatus === "syncing" ? "syncing" : syncStatus === "error" ? "error" : "connected"}`} title={syncStatus === "idle" ? `Synced ${lastSync ? new Date(lastSync).toLocaleTimeString() : ""}` : syncStatus} />
           </div>
-          <p className="text-[11px] text-[#64748b] uppercase tracking-widest mt-0.5">Voltic · AdForge · AI Catalyst — Live Sync via Google Sheets</p>
+          <p className="text-[11px] text-[#64748b] uppercase tracking-widest mt-0.5">Voltic · AdForge · AI Training — Live Sync via Google Sheets</p>
         </div>
       </div>
       <div className="flex items-center gap-2 flex-wrap">

@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { ContentCard, ColumnId, Filters } from "./types";
-import { fetchCards, apiAddCard, apiUpdateCard, apiDeleteCard, apiBulkKeep, apiBulkReject, apiAddComment, apiSeed } from "./api";
+import { fetchCards, apiAddCard, apiUpdateCard, apiDeleteCard, apiBulkKeep, apiBulkReject, apiAddComment, apiDeleteComment, apiSeed } from "./api";
 
 type SyncStatus = "idle" | "syncing" | "error";
 
@@ -29,6 +29,7 @@ interface AppState {
   deleteCard: (id: string) => Promise<void>;
   moveCard: (id: string, status: ColumnId) => Promise<void>;
   addComment: (cardId: string, text: string) => Promise<void>;
+  deleteComment: (commentId: string) => Promise<void>;
   bulkKeep: () => Promise<void>;
   bulkReject: () => Promise<void>;
   resetData: () => Promise<void>;
@@ -117,6 +118,12 @@ export const useStore = create<AppState>()((set, get) => ({
   addComment: async (cardId, text) => {
     set({ syncStatus: "syncing" });
     await apiAddComment(cardId, get().commentAuthor, text);
+    await get().refresh();
+  },
+
+  deleteComment: async (commentId) => {
+    set({ syncStatus: "syncing" });
+    await apiDeleteComment(commentId);
     await get().refresh();
   },
 
