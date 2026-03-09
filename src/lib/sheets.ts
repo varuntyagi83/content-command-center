@@ -2,11 +2,7 @@ import { GoogleSpreadsheet } from "google-spreadsheet";
 import { JWT } from "google-auth-library";
 import { ContentCard, Comment, ColumnId } from "./types";
 
-let _doc: GoogleSpreadsheet | null = null;
-
 async function getDoc(): Promise<GoogleSpreadsheet> {
-  if (_doc) return _doc;
-
   const auth = new JWT({
     email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL!,
     key: process.env.GOOGLE_PRIVATE_KEY!.replace(/\\n/g, "\n"),
@@ -15,7 +11,6 @@ async function getDoc(): Promise<GoogleSpreadsheet> {
 
   const doc = new GoogleSpreadsheet(process.env.GOOGLE_SPREADSHEET_ID!, auth);
   await doc.loadInfo();
-  _doc = doc;
   return doc;
 }
 
@@ -203,10 +198,6 @@ export async function clearAndSeedCards(cards: Omit<ContentCard, "comments">[]):
 
   // Clear entire sheet
   await sheet.clear();
-
-  // Reset singleton — forces a fresh doc/sheet reference after clear
-  // to avoid stale internal state causing addRows to write at wrong position
-  _doc = null;
 
   // Get a fresh sheet reference and restore header
   const freshSheet = await getCardsSheet();

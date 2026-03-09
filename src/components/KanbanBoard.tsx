@@ -35,8 +35,13 @@ export default function KanbanBoard({ onCardClick }: { onCardClick: (id: string)
                         <span className="text-[10px] opacity-50 flex-shrink-0">{card.priority?.slice(0, 2)}</span>
                       </div>
                       {card.description && <div className="text-[11px] text-[#94a3b8] leading-relaxed mb-2 line-clamp-2">{card.description}</div>}
-                      <div className="flex flex-wrap gap-0.5 mb-1">{card.products.map(p => <ProductTag key={p} product={p} />)}</div>
-                      <div className="flex flex-wrap gap-0.5">{card.platforms.map(p => <PlatformTag key={p} platform={p} />)}</div>
+                      <div className="flex flex-wrap gap-0.5 mb-1">
+                        {card.products.map(p => <ProductTag key={p} product={p} />)}
+                        {card.platforms.map(p => <PlatformTag key={p} platform={p} />)}
+                        {card.pillar && <span className="tag" style={{ background: "#7c3aed20", color: "#c4b5fd" }}>{card.pillar}</span>}
+                        {card.funnel && <span className="tag" style={{ background: "#0ea5e920", color: "#67e8f9" }}>{card.funnel}</span>}
+                        {card.optimization && <span className="tag" style={{ background: "#f9731620", color: "#fdba74" }}>{card.optimization}</span>}
+                      </div>
                       {card.comments.length > 0 && <div className="mt-2 text-[10px] text-[#64748b]">💬 {card.comments.length}</div>}
                     </div>
                   </div>
