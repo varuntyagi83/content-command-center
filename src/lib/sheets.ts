@@ -201,8 +201,8 @@ export async function clearAndSeedCards(cards: Omit<ContentCard, "comments">[]):
       updatedAt: row.get("updatedAt"),
     }));
 
-  // Delete all rows
-  for (const row of existingRows) await row.delete();
+  // Delete all rows in reverse order to avoid index shifting
+  for (const row of [...existingRows].reverse()) await row.delete();
 
   // Add seed rows first (c001–c050)
   const seedRows = cards.map((card) => ({
