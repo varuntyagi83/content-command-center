@@ -22,9 +22,6 @@ export default function CardDetail({ card, onEdit, onClose }: Props) {
         <div className="flex flex-wrap gap-1 mb-4">
           {card.products.map(p => <ProductTag key={p} product={p} />)}
           {card.platforms.map(p => <PlatformTag key={p} platform={p} />)}
-          {card.pillar && <span className="tag" style={{ background: "#7c3aed20", color: "#c4b5fd" }}>{card.pillar}</span>}
-          {card.funnel && <span className="tag" style={{ background: "#0ea5e920", color: "#67e8f9" }}>{card.funnel}</span>}
-          {card.optimization && <span className="tag" style={{ background: "#f9731620", color: "#fdba74" }}>{card.optimization}</span>}
         </div>
         <div className="mb-5">
           <div className="text-[11px] text-[#64748b] font-semibold uppercase tracking-wider mb-2">Move to</div>
