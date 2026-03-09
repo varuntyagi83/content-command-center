@@ -181,9 +181,12 @@ export async function addComment(comment: Comment): Promise<Comment> {
 export async function clearAndSeedCards(cards: Omit<ContentCard, "comments">[]): Promise<void> {
   const sheet = await getCardsSheet();
   const existingRows = await sheet.getRows();
+  const seedIds = new Set(cards.map(c => c.id));
 
-  // Delete all existing rows
-  for (const row of existingRows) await row.delete();
+  // Only delete rows that belong to the original seed set
+  for (const row of existingRows) {
+    if (seedIds.has(row.get("id"))) await row.delete();
+  }
 
   const rows = cards.map((card) => ({
     id: card.id,

@@ -137,8 +137,8 @@ export const useStore = create<AppState>()((set, get) => ({
   },
 
   resetData: async () => {
-    // Note: this would need a server-side reset endpoint
-    // For now, just refresh
+    set({ syncStatus: "syncing" });
+    await apiSeed();
     await get().refresh();
   },
 
