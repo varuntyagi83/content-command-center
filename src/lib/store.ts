@@ -47,8 +47,6 @@ export const useStore = create<AppState>()((set, get) => ({
   init: async () => {
     set({ syncStatus: "syncing" });
     try {
-      // Seed if empty
-      await apiSeed();
       const cards = await fetchCards();
       set({ cards, syncStatus: "idle", lastSync: new Date().toISOString() });
     } catch {

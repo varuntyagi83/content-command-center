@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAllCards, addCard, updateCard, deleteCard, bulkUpdateStatus, bulkDelete } from "@/lib/sheets";
-import { v4 as uuid } from "uuid";
+import { getAllCards, addCard, updateCard, deleteCard, bulkUpdateStatus, bulkDelete, getNextCardId } from "@/lib/sheets";
 
 export async function GET() {
   try {
@@ -29,7 +28,7 @@ export async function POST(req: NextRequest) {
     // Single card add
     const now = new Date().toISOString();
     const card = await addCard({
-      id: uuid().slice(0, 8),
+      id: await getNextCardId(),
       title: body.title || "",
       description: body.description || "",
       products: body.products || [],

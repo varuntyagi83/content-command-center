@@ -178,12 +178,12 @@ export async function addComment(comment: Comment): Promise<Comment> {
 
 // ── Seed ─────────────────────────────────────────────────────
 
-export async function seedCards(cards: Omit<ContentCard, "comments">[]): Promise<void> {
+export async function clearAndSeedCards(cards: Omit<ContentCard, "comments">[]): Promise<void> {
   const sheet = await getCardsSheet();
   const existingRows = await sheet.getRows();
 
-  // Only seed if sheet is empty
-  if (existingRows.length > 0) return;
+  // Delete all existing rows
+  for (const row of existingRows) await row.delete();
 
   const rows = cards.map((card) => ({
     id: card.id,
@@ -201,4 +201,16 @@ export async function seedCards(cards: Omit<ContentCard, "comments">[]): Promise
   }));
 
   await sheet.addRows(rows);
+}
+
+export async function getNextCardId(): Promise<string> {
+  const sheet = await getCardsSheet();
+  const rows = await sheet.getRows();
+  let max = 0;
+  for (const row of rows) {
+    const id = row.get("id") || "";
+    const match = id.match(/^c(\d+)$/);
+    if (match) max = Math.max(max, parseInt(match[1], 10));
+  }
+  return `c${String(max + 1).padStart(3, "0")}`;
 }
