@@ -63,20 +63,30 @@ export async function getAllCards(): Promise<ContentCard[]> {
 }
 
 export async function addCard(card: Omit<ContentCard, "comments">): Promise<ContentCard> {
-  const sheet = await getCardsSheet();
-  await sheet.addRow({
-    id: card.id,
-    title: card.title,
-    description: card.description,
-    products: card.products.join("||"),
-    platforms: card.platforms.join("||"),
-    pillar: card.pillar,
-    funnel: card.funnel,
-    priority: card.priority,
-    optimization: card.optimization,
-    status: card.status,
-    createdAt: card.createdAt,
-    updatedAt: card.updatedAt,
+  const doc = await getDoc();
+  let sheet = doc.sheetsByTitle["Cards"];
+  if (!sheet) {
+    sheet = await doc.addSheet({ title: "Cards", headerValues: CARD_HEADERS });
+  }
+  // Use getRows() to determine the exact next row number, then write directly
+  // using values.update instead of values.append — this bypasses Google's "table
+  // detection" which was treating the sheet as having only 1 row and overwriting c001.
+  const rows = await sheet.getRows();
+  const nextRow = rows.length + 2; // row 1 = header; data starts at row 2
+  await doc.sheetsApi.request({
+    method: "put",
+    url: `/values/${sheet.encodedA1SheetName}!A${nextRow}:L${nextRow}`,
+    params: { valueInputOption: "USER_ENTERED" },
+    data: {
+      range: `${sheet.a1SheetName}!A${nextRow}:L${nextRow}`,
+      majorDimension: "ROWS",
+      values: [[
+        card.id, card.title, card.description,
+        card.products.join("||"), card.platforms.join("||"),
+        card.pillar, card.funnel, card.priority, card.optimization,
+        card.status, card.createdAt, card.updatedAt,
+      ]],
+    },
   });
   return { ...card, comments: [] };
 }
