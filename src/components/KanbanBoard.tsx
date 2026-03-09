@@ -8,14 +8,14 @@ export default function KanbanBoard({ onCardClick }: { onCardClick: (id: string)
   const [dragCard, setDragCard] = useState<ContentCard | null>(null);
   const [dragOver, setDragOver] = useState<string | null>(null);
   return (
-    <div className="flex gap-3 px-5 py-4 overflow-x-auto" style={{ minHeight: "calc(100vh - 200px)" }}>
+    <div className="flex gap-3 px-5 py-4 overflow-x-auto" style={{ height: "calc(100vh - 200px)" }}>
       {COLUMNS.map(col => {
         const cards = getFilteredCards(col.id);
         const isIdea = col.id === "idea";
         return (
           <div key={col.id} onDragOver={e => { e.preventDefault(); setDragOver(col.id); }} onDragLeave={() => setDragOver(null)} onDrop={e => { e.preventDefault(); if (dragCard) moveCard(dragCard.id, col.id); setDragCard(null); setDragOver(null); }}
-            className="flex flex-col rounded-xl" style={{ flex: "1 0 240px", maxWidth: 320, minWidth: 240, background: dragOver === col.id ? "#1a1a2e" : "#0f0f1a", border: `1px solid ${dragOver === col.id ? col.color + "80" : "#1e1e3a"}` }}>
-            <div className="px-3.5 pt-3.5 pb-2.5 border-b border-surface-border-light flex items-center justify-between">
+            className="flex flex-col rounded-xl" style={{ flex: "1 0 240px", maxWidth: 320, minWidth: 240, height: "100%", background: dragOver === col.id ? "#1a1a2e" : "#0f0f1a", border: `1px solid ${dragOver === col.id ? col.color + "80" : "#1e1e3a"}` }}>
+            <div className="px-3.5 pt-3.5 pb-2.5 border-b border-surface-border-light flex items-center justify-between flex-shrink-0">
               <div className="flex items-center gap-2">
                 {isIdea && cards.length > 0 && <input type="checkbox" className="checkbox-accent" checked={cards.every(c => c._selected)} onChange={() => selectAll(col.id)} />}
                 <div className="w-2 h-2 rounded-full" style={{ background: col.color }} />
@@ -35,10 +35,11 @@ export default function KanbanBoard({ onCardClick }: { onCardClick: (id: string)
                         <span className="text-[10px] opacity-50 flex-shrink-0">{card.priority?.slice(0, 2)}</span>
                       </div>
                       {card.description && <div className="text-[11px] text-[#94a3b8] leading-relaxed mb-2 line-clamp-2">{card.description}</div>}
-                      <div className="flex flex-wrap gap-0.5 mb-1">
-                        {card.products.map(p => <ProductTag key={p} product={p} />)}
-                        {card.platforms.map(p => <PlatformTag key={p} platform={p} />)}
-                      </div>
+                      {card.products.length > 0 && <div className="flex flex-wrap gap-0.5 mb-1">{card.products.map(p => <ProductTag key={p} product={p} />)}</div>}
+                      {card.platforms.length > 0 && <div className="flex flex-wrap gap-0.5 mb-1">{card.platforms.map(p => <PlatformTag key={p} platform={p} />)}</div>}
+                      {card.pillar && <div className="flex flex-wrap gap-0.5 mb-1"><span className="tag" style={{ background: "#7c3aed20", color: "#c4b5fd" }}>{card.pillar}</span></div>}
+                      {card.funnel && <div className="flex flex-wrap gap-0.5 mb-1"><span className="tag" style={{ background: "#0ea5e920", color: "#67e8f9" }}>{card.funnel}</span></div>}
+                      {card.optimization && <div className="flex flex-wrap gap-0.5 mb-1"><span className="tag" style={{ background: "#f9731620", color: "#fdba74" }}>{card.optimization}</span></div>}
                       {card.comments.length > 0 && <div className="mt-2 text-[10px] text-[#64748b]">💬 {card.comments.length}</div>}
                     </div>
                   </div>

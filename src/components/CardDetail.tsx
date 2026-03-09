@@ -19,9 +19,12 @@ export default function CardDetail({ card, onEdit, onClose }: Props) {
       <div className="overflow-y-auto flex-1 p-5">
         <h2 className="text-xl font-bold mb-2 leading-snug">{card.title}</h2>
         {card.description && <p className="text-sm text-[#94a3b8] leading-relaxed mb-4">{card.description}</p>}
-        <div className="flex flex-wrap gap-1 mb-4">
-          {card.products.map(p => <ProductTag key={p} product={p} />)}
-          {card.platforms.map(p => <PlatformTag key={p} platform={p} />)}
+        <div className="flex flex-col gap-1 mb-4">
+          {card.products.length > 0 && <div className="flex flex-wrap gap-1">{card.products.map(p => <ProductTag key={p} product={p} />)}</div>}
+          {card.platforms.length > 0 && <div className="flex flex-wrap gap-1">{card.platforms.map(p => <PlatformTag key={p} platform={p} />)}</div>}
+          {card.pillar && <div className="flex flex-wrap gap-1"><span className="tag" style={{ background: "#7c3aed20", color: "#c4b5fd" }}>{card.pillar}</span></div>}
+          {card.funnel && <div className="flex flex-wrap gap-1"><span className="tag" style={{ background: "#0ea5e920", color: "#67e8f9" }}>{card.funnel}</span></div>}
+          {card.optimization && <div className="flex flex-wrap gap-1"><span className="tag" style={{ background: "#f9731620", color: "#fdba74" }}>{card.optimization}</span></div>}
         </div>
         <div className="mb-5">
           <div className="text-[11px] text-[#64748b] font-semibold uppercase tracking-wider mb-2">Move to</div>
