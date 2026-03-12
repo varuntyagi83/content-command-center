@@ -8,6 +8,7 @@ export default function CardDetail({ card, onEdit, onClose }: Props) {
   const { deleteCard, moveCard, addComment, deleteComment, commentAuthor } = useStore();
   const [nc, setNc] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const AUTHOR_COLORS: Record<string, string> = { Varun: "#a78bfa", Renuka: "#f472b6" };
   const col = COLUMNS.find(c => c.id === card.status);
   const handleComment = async () => { if (!nc.trim()) return; setSubmitting(true); await addComment(card.id, nc.trim()); setNc(""); setSubmitting(false); };
   const handleDelete = async () => { if (confirm("Delete?")) { await deleteCard(card.id); onClose(); } };
@@ -37,10 +38,10 @@ export default function CardDetail({ card, onEdit, onClose }: Props) {
             {card.comments.map((c, i) => (
               <div key={c.id || i} className="bg-[#0f0f1a] rounded-xl p-3 border border-surface-border-light">
                 <div className="flex justify-between mb-1">
-                  <span className="text-xs font-semibold" style={{ color: c.author === "Varun" ? "#a78bfa" : "#f472b6" }}>{c.author}</span>
+                  <span className="text-xs font-semibold" style={{ color: AUTHOR_COLORS[c.author] ?? "#94a3b8" }}>{c.author}</span>
                   <div className="flex items-center gap-2">
                     <span className="text-[10px] text-[#475569]">{new Date(c.time).toLocaleDateString()}</span>
-                    <button className="text-[10px] text-[#475569] hover:text-[#f87171] transition-colors" onClick={() => deleteComment(c.id)} title="Delete comment">✕</button>
+                    <button className="text-[10px] text-[#475569] hover:text-[#f87171] transition-colors" onClick={async () => { await deleteComment(c.id); }} title="Delete comment">✕</button>
                   </div>
                 </div>
                 <div className="text-sm text-[#cbd5e1] leading-relaxed">{c.text}</div>

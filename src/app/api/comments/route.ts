@@ -5,6 +5,8 @@ import { v4 as uuid } from "uuid";
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
+    if (!body.cardId || !body.author || !body.text?.trim())
+      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     const comment = await addComment({
       id: uuid().slice(0, 8),
       cardId: body.cardId,

@@ -92,20 +92,32 @@ export const useStore = create<AppState>()((set, get) => ({
 
   addCard: async (card) => {
     set({ syncStatus: "syncing" });
-    await apiAddCard(card);
-    await get().refresh();
+    try {
+      await apiAddCard(card);
+      await get().refresh();
+    } catch {
+      set({ syncStatus: "error" });
+    }
   },
 
   updateCard: async (id, updates) => {
     set({ syncStatus: "syncing" });
-    await apiUpdateCard(id, updates);
-    await get().refresh();
+    try {
+      await apiUpdateCard(id, updates);
+      await get().refresh();
+    } catch {
+      set({ syncStatus: "error" });
+    }
   },
 
   deleteCard: async (id) => {
     set({ syncStatus: "syncing" });
-    await apiDeleteCard(id);
-    await get().refresh();
+    try {
+      await apiDeleteCard(id);
+      await get().refresh();
+    } catch {
+      set({ syncStatus: "error" });
+    }
   },
 
   moveCard: async (id, status) => {
@@ -114,42 +126,67 @@ export const useStore = create<AppState>()((set, get) => ({
       cards: s.cards.map(c => c.id === id ? { ...c, status } : c),
       syncStatus: "syncing",
     }));
-    await apiUpdateCard(id, { status });
-    await get().refresh();
+    try {
+      await apiUpdateCard(id, { status });
+      await get().refresh();
+    } catch {
+      await get().refresh(); // rolls back optimistic update
+      set({ syncStatus: "error" });
+    }
   },
 
   addComment: async (cardId, text) => {
     set({ syncStatus: "syncing" });
-    await apiAddComment(cardId, get().commentAuthor, text);
-    await get().refresh();
+    try {
+      await apiAddComment(cardId, get().commentAuthor, text);
+      await get().refresh();
+    } catch {
+      set({ syncStatus: "error" });
+    }
   },
 
   deleteComment: async (commentId) => {
     set({ syncStatus: "syncing" });
-    await apiDeleteComment(commentId);
-    await get().refresh();
+    try {
+      await apiDeleteComment(commentId);
+      await get().refresh();
+    } catch {
+      set({ syncStatus: "error" });
+    }
   },
 
   bulkKeep: async () => {
     const ids = get().getFilteredCards("idea").filter(c => c._selected).map(c => c.id);
     if (!ids.length) return;
     set({ syncStatus: "syncing" });
-    await apiBulkKeep(ids);
-    await get().refresh();
+    try {
+      await apiBulkKeep(ids);
+      await get().refresh();
+    } catch {
+      set({ syncStatus: "error" });
+    }
   },
 
   bulkReject: async () => {
     const ids = get().getFilteredCards("idea").filter(c => c._selected).map(c => c.id);
     if (!ids.length) return;
     set({ syncStatus: "syncing" });
-    await apiBulkReject(ids);
-    await get().refresh();
+    try {
+      await apiBulkReject(ids);
+      await get().refresh();
+    } catch {
+      set({ syncStatus: "error" });
+    }
   },
 
   resetData: async () => {
     set({ syncStatus: "syncing" });
-    await apiSeed();
-    await get().refresh();
+    try {
+      await apiSeed();
+      await get().refresh();
+    } catch {
+      set({ syncStatus: "error" });
+    }
   },
 
   getFilteredCards: (status) => {

@@ -1,11 +1,12 @@
 "use client";
 import { useState } from "react";
 import { ContentCard, PRODUCTS, PLATFORMS, PILLARS, FUNNEL_STAGES, PRIORITIES, OPTIMIZATION } from "@/lib/types";
-interface Props { card?: ContentCard | null; onSubmit: (d: Partial<ContentCard>) => void; onClose: () => void; }
+interface Props { card?: ContentCard | null; onSubmit: (d: Partial<ContentCard>) => Promise<void>; onClose: () => void; }
 export default function CardForm({ card, onSubmit, onClose }: Props) {
   const [f, sF] = useState({ title: card?.title || "", description: card?.description || "", products: card?.products || [] as string[], platforms: card?.platforms || [] as string[], pillar: card?.pillar || "", funnel: card?.funnel || "", priority: card?.priority || "🟡 Medium", optimization: card?.optimization || "" });
+  const [submitting, setSubmitting] = useState(false);
   const tog = (k: "products" | "platforms", v: string) => sF(p => ({ ...p, [k]: p[k].includes(v) ? p[k].filter((x: string) => x !== v) : [...p[k], v] }));
-  const sub = (e: React.FormEvent) => { e.preventDefault(); if (!f.title.trim()) return; onSubmit(f); };
+  const sub = async (e: React.FormEvent) => { e.preventDefault(); if (!f.title.trim()) return; setSubmitting(true); await onSubmit(f); setSubmitting(false); };
   const I = "bg-[#0f0f1a] border border-surface-border rounded-lg px-3 py-2.5 text-[#e2e8f0] text-sm outline-none w-full focus:border-accent";
   const L = "text-[11px] font-semibold text-[#94a3b8] uppercase tracking-wider mb-1.5 block";
   return (
@@ -26,7 +27,7 @@ export default function CardForm({ card, onSubmit, onClose }: Props) {
           <div><label className={L}>Priority</label><select value={f.priority} onChange={e => sF({ ...f, priority: e.target.value })} className={I + " cursor-pointer"}>{PRIORITIES.map(p => <option key={p}>{p}</option>)}</select></div>
           <div><label className={L}>SEO/AEO</label><select value={f.optimization} onChange={e => sF({ ...f, optimization: e.target.value })} className={I + " cursor-pointer"}><option value="">Select...</option>{OPTIMIZATION.map(o => <option key={o}>{o}</option>)}</select></div>
         </div>
-        <div className="flex gap-2 justify-end"><button type="button" className="btn bg-surface-elevated text-[#94a3b8] px-5 py-2.5 rounded-lg text-sm" onClick={onClose}>Cancel</button><button type="submit" className="btn text-white px-6 py-2.5 rounded-lg text-sm font-semibold" style={{ background: "linear-gradient(135deg, #6366f1, #7c3aed)" }}>{card ? "Save" : "Add"}</button></div>
+        <div className="flex gap-2 justify-end"><button type="button" className="btn bg-surface-elevated text-[#94a3b8] px-5 py-2.5 rounded-lg text-sm" onClick={onClose}>Cancel</button><button type="submit" className={"btn text-white px-6 py-2.5 rounded-lg text-sm font-semibold" + (submitting ? " opacity-50 cursor-not-allowed" : "")} style={{ background: "linear-gradient(135deg, #6366f1, #7c3aed)" }} disabled={submitting}>{card ? "Save" : "Add"}</button></div>
       </form>
     </div>
   );

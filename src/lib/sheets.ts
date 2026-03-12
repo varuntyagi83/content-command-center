@@ -249,15 +249,3 @@ export async function clearAndSeedCards(cards: Omit<ContentCard, "comments">[]):
 
   await freshSheet.addRows([...seedRows, ...customRows]);
 }
-
-export async function getNextCardId(): Promise<string> {
-  const sheet = await getCardsSheet();
-  const rows = await sheet.getRows();
-  let max = 0;
-  for (const row of rows) {
-    const id = row.get("id") || "";
-    const match = id.match(/^c(\d+)$/);
-    if (match) max = Math.max(max, parseInt(match[1], 10));
-  }
-  return `c${String(max + 1).padStart(3, "0")}`;
-}

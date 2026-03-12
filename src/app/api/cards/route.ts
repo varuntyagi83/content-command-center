@@ -57,6 +57,8 @@ export async function PATCH(req: NextRequest) {
   try {
     const body = await req.json();
     if (!body.id) return NextResponse.json({ error: "Missing id" }, { status: 400 });
+    if (!body.updates || typeof body.updates !== "object")
+      return NextResponse.json({ error: "Missing updates" }, { status: 400 });
     await updateCard(body.id, body.updates);
     return NextResponse.json({ ok: true });
   } catch (err: any) {
