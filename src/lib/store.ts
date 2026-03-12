@@ -39,7 +39,7 @@ interface AppState {
 
 export const useStore = create<AppState>()((set, get) => ({
   cards: [],
-  commentAuthor: "Varun",
+  commentAuthor: (typeof window !== "undefined" ? localStorage.getItem("commentAuthor") : null) ?? "Varun",
   viewMode: "kanban",
   filters: { product: "", platform: "", pillar: "", search: "" },
   syncStatus: "idle",
@@ -70,7 +70,10 @@ export const useStore = create<AppState>()((set, get) => ({
     }
   },
 
-  setCommentAuthor: (a) => set({ commentAuthor: a }),
+  setCommentAuthor: (a) => {
+    if (typeof window !== "undefined") localStorage.setItem("commentAuthor", a);
+    set({ commentAuthor: a });
+  },
   setViewMode: (m) => set({ viewMode: m }),
   setFilters: (f) => set({ filters: f }),
 

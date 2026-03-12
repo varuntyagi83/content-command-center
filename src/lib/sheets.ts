@@ -56,7 +56,9 @@ export async function getAllCards(): Promise<ContentCard[]> {
   // Load comments
   const comments = await getAllComments();
   for (const card of cards) {
-    card.comments = comments.filter((c) => c.cardId === card.id);
+    card.comments = comments
+      .filter((c) => c.cardId === card.id)
+      .sort((a, b) => new Date(a.time).getTime() - new Date(b.time).getTime());
   }
 
   return cards;
@@ -170,13 +172,22 @@ async function getAllComments(): Promise<Comment[]> {
 }
 
 export async function addComment(comment: Comment): Promise<Comment> {
-  const sheet = await getCommentsSheet();
-  await sheet.addRow({
-    id: comment.id,
-    cardId: comment.cardId,
-    author: comment.author,
-    text: comment.text,
-    time: comment.time,
+  const doc = await getDoc();
+  let sheet = doc.sheetsByTitle["Comments"];
+  if (!sheet) {
+    sheet = await doc.addSheet({ title: "Comments", headerValues: COMMENT_HEADERS });
+  }
+  const rows = await sheet.getRows();
+  const nextRow = rows.length + 2; // row 1 = header; data starts at row 2
+  await doc.sheetsApi.request({
+    method: "put",
+    url: `/values/${sheet.encodedA1SheetName}!A${nextRow}:E${nextRow}`,
+    params: { valueInputOption: "USER_ENTERED" },
+    data: {
+      range: `${sheet.a1SheetName}!A${nextRow}:E${nextRow}`,
+      majorDimension: "ROWS",
+      values: [[comment.id, comment.cardId, comment.author, comment.text, comment.time]],
+    },
   });
   return comment;
 }

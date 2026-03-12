@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAllCards, addCard, updateCard, deleteCard, bulkUpdateStatus, bulkDelete, getNextCardId } from "@/lib/sheets";
+import { getAllCards, addCard, updateCard, deleteCard, bulkUpdateStatus, bulkDelete } from "@/lib/sheets";
+import { v4 as uuid } from "uuid";
 
 export async function GET() {
   try {
@@ -17,18 +18,22 @@ export async function POST(req: NextRequest) {
 
     // Bulk operations
     if (body.action === "bulk_keep") {
+      if (!Array.isArray(body.ids) || body.ids.length === 0)
+        return NextResponse.json({ error: "ids must be a non-empty array" }, { status: 400 });
       await bulkUpdateStatus(body.ids, "drafting");
       return NextResponse.json({ ok: true });
     }
     if (body.action === "bulk_reject") {
+      if (!Array.isArray(body.ids) || body.ids.length === 0)
+        return NextResponse.json({ error: "ids must be a non-empty array" }, { status: 400 });
       await bulkDelete(body.ids);
       return NextResponse.json({ ok: true });
     }
 
-    // Single card add
+    // Single card add — use uuid to avoid sequential-ID race condition
     const now = new Date().toISOString();
     const card = await addCard({
-      id: await getNextCardId(),
+      id: uuid().slice(0, 8),
       title: body.title || "",
       description: body.description || "",
       products: body.products || [],
@@ -51,9 +56,13 @@ export async function POST(req: NextRequest) {
 export async function PATCH(req: NextRequest) {
   try {
     const body = await req.json();
+    if (!body.id) return NextResponse.json({ error: "Missing id" }, { status: 400 });
     await updateCard(body.id, body.updates);
     return NextResponse.json({ ok: true });
   } catch (err: any) {
+    if (err.message?.includes("not found")) {
+      return NextResponse.json({ error: err.message }, { status: 404 });
+    }
     console.error("PATCH /api/cards error:", err);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }

@@ -7,8 +7,9 @@ interface Props { card: ContentCard; onEdit: () => void; onClose: () => void; }
 export default function CardDetail({ card, onEdit, onClose }: Props) {
   const { deleteCard, moveCard, addComment, deleteComment, commentAuthor } = useStore();
   const [nc, setNc] = useState("");
+  const [submitting, setSubmitting] = useState(false);
   const col = COLUMNS.find(c => c.id === card.status);
-  const handleComment = async () => { if (!nc.trim()) return; await addComment(card.id, nc.trim()); setNc(""); };
+  const handleComment = async () => { if (!nc.trim()) return; setSubmitting(true); await addComment(card.id, nc.trim()); setNc(""); setSubmitting(false); };
   const handleDelete = async () => { if (confirm("Delete?")) { await deleteCard(card.id); onClose(); } };
   return (
     <div className="bg-surface-card rounded-2xl border border-surface-border overflow-hidden flex flex-col" style={{ maxHeight: "85vh" }}>
@@ -47,8 +48,8 @@ export default function CardDetail({ card, onEdit, onClose }: Props) {
             ))}
           </div>
           <div className="flex gap-2">
-            <input value={nc} onChange={e => setNc(e.target.value)} onKeyDown={e => e.key === "Enter" && handleComment()} placeholder={`Comment as ${commentAuthor}...`} className="flex-1 bg-[#0f0f1a] border border-surface-border rounded-lg px-3 py-2.5 text-[#e2e8f0] text-sm outline-none" />
-            <button className="btn bg-accent text-white px-4 py-2.5 rounded-lg text-xs font-semibold" onClick={handleComment}>Send</button>
+            <input value={nc} onChange={e => setNc(e.target.value)} onKeyDown={e => e.key === "Enter" && handleComment()} placeholder={`Comment as ${commentAuthor}...`} className="flex-1 bg-[#0f0f1a] border border-surface-border rounded-lg px-3 py-2.5 text-[#e2e8f0] text-sm outline-none" disabled={submitting} />
+            <button className={`btn bg-accent text-white px-4 py-2.5 rounded-lg text-xs font-semibold${submitting ? " opacity-50 cursor-not-allowed" : ""}`} onClick={handleComment} disabled={submitting}>Send</button>
           </div>
         </div>
       </div>
