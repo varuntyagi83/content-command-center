@@ -8,15 +8,31 @@ export default function CardDetail({ card, onEdit, onClose }: Props) {
   const { deleteCard, moveCard, addComment, deleteComment, commentAuthor } = useStore();
   const [nc, setNc] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const AUTHOR_COLORS: Record<string, string> = { Varun: "#a78bfa", Renuka: "#f472b6" };
   const col = COLUMNS.find(c => c.id === card.status);
-  const handleComment = async () => { if (!nc.trim()) return; setSubmitting(true); await addComment(card.id, nc.trim()); setNc(""); setSubmitting(false); };
-  const handleDelete = async () => { if (confirm("Delete?")) { await deleteCard(card.id); onClose(); } };
+  const handleComment = async () => {
+    if (!nc.trim()) return;
+    setSubmitting(true);
+    try {
+      await addComment(card.id, nc.trim());
+      setNc("");
+    } catch {} finally {
+      setSubmitting(false);
+    }
+  };
+  const handleDelete = async () => {
+    if (confirm("Delete?")) {
+      setDeleting(true);
+      await deleteCard(card.id);
+      onClose();
+    }
+  };
   return (
     <div className="bg-surface-card rounded-2xl border border-surface-border overflow-hidden flex flex-col" style={{ maxHeight: "85vh" }}>
       <div className="px-5 py-4 border-b border-surface-border flex justify-between flex-shrink-0">
         <div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full" style={{ background: col?.color }} /><span className="text-[11px] text-[#94a3b8] font-semibold uppercase tracking-wider">{col?.label}</span></div>
-        <div className="flex gap-1"><button className="btn bg-surface-elevated text-accent-light px-3 py-1.5 rounded-md text-[11px] font-semibold" onClick={onEdit}>Edit</button><button className="btn bg-surface-elevated text-[#f87171] px-3 py-1.5 rounded-md text-[11px] font-semibold" onClick={handleDelete}>Delete</button><button className="btn text-[#64748b] text-lg px-1.5" onClick={onClose}>✕</button></div>
+        <div className="flex gap-1"><button className="btn bg-surface-elevated text-accent-light px-3 py-1.5 rounded-md text-[11px] font-semibold" onClick={onEdit}>Edit</button><button className="btn bg-surface-elevated text-[#f87171] px-3 py-1.5 rounded-md text-[11px] font-semibold" onClick={handleDelete} disabled={deleting}>{deleting ? "Deleting…" : "Delete"}</button><button className="btn text-[#64748b] text-lg px-1.5" onClick={onClose}>✕</button></div>
       </div>
       <div className="overflow-y-auto flex-1 p-5">
         <h2 className="text-xl font-bold mb-2 leading-snug">{card.title}</h2>

@@ -95,8 +95,9 @@ export const useStore = create<AppState>()((set, get) => ({
     try {
       await apiAddCard(card);
       await get().refresh();
-    } catch {
+    } catch (err) {
       set({ syncStatus: "error" });
+      throw err;
     }
   },
 
@@ -105,8 +106,9 @@ export const useStore = create<AppState>()((set, get) => ({
     try {
       await apiUpdateCard(id, updates);
       await get().refresh();
-    } catch {
+    } catch (err) {
       set({ syncStatus: "error" });
+      throw err;
     }
   },
 
@@ -115,8 +117,9 @@ export const useStore = create<AppState>()((set, get) => ({
     try {
       await apiDeleteCard(id);
       await get().refresh();
-    } catch {
+    } catch (err) {
       set({ syncStatus: "error" });
+      throw err;
     }
   },
 
@@ -129,9 +132,10 @@ export const useStore = create<AppState>()((set, get) => ({
     try {
       await apiUpdateCard(id, { status });
       await get().refresh();
-    } catch {
-      await get().refresh(); // rolls back optimistic update
+    } catch (err) {
+      try { await get().refresh(); } catch {}
       set({ syncStatus: "error" });
+      throw err;
     }
   },
 
@@ -140,8 +144,9 @@ export const useStore = create<AppState>()((set, get) => ({
     try {
       await apiAddComment(cardId, get().commentAuthor, text);
       await get().refresh();
-    } catch {
+    } catch (err) {
       set({ syncStatus: "error" });
+      throw err;
     }
   },
 
@@ -150,8 +155,9 @@ export const useStore = create<AppState>()((set, get) => ({
     try {
       await apiDeleteComment(commentId);
       await get().refresh();
-    } catch {
+    } catch (err) {
       set({ syncStatus: "error" });
+      throw err;
     }
   },
 
@@ -162,8 +168,9 @@ export const useStore = create<AppState>()((set, get) => ({
     try {
       await apiBulkKeep(ids);
       await get().refresh();
-    } catch {
+    } catch (err) {
       set({ syncStatus: "error" });
+      throw err;
     }
   },
 
@@ -174,8 +181,9 @@ export const useStore = create<AppState>()((set, get) => ({
     try {
       await apiBulkReject(ids);
       await get().refresh();
-    } catch {
+    } catch (err) {
       set({ syncStatus: "error" });
+      throw err;
     }
   },
 
@@ -184,8 +192,9 @@ export const useStore = create<AppState>()((set, get) => ({
     try {
       await apiSeed();
       await get().refresh();
-    } catch {
+    } catch (err) {
       set({ syncStatus: "error" });
+      throw err;
     }
   },
 

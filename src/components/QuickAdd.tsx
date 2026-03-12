@@ -10,10 +10,13 @@ export default function QuickAdd() {
     e.preventDefault();
     if (!v.trim()) return;
     setSubmitting(true);
-    await addCard({ title: v.trim(), description: "", products: [], platforms: [], pillar: "", funnel: "", priority: "🟡 Medium", optimization: "", status: "idea" });
-    setV("");
-    ref.current?.focus();
-    setSubmitting(false);
+    try {
+      await addCard({ title: v.trim(), description: "", products: [], platforms: [], pillar: "", funnel: "", priority: "🟡 Medium", optimization: "", status: "idea" });
+      setV("");
+      ref.current?.focus();
+    } catch {} finally {
+      setSubmitting(false);
+    }
   };
   return (
     <div className="px-6 py-3 border-b border-surface-border-light">

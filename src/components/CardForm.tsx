@@ -6,7 +6,16 @@ export default function CardForm({ card, onSubmit, onClose }: Props) {
   const [f, sF] = useState({ title: card?.title || "", description: card?.description || "", products: card?.products || [] as string[], platforms: card?.platforms || [] as string[], pillar: card?.pillar || "", funnel: card?.funnel || "", priority: card?.priority || "🟡 Medium", optimization: card?.optimization || "" });
   const [submitting, setSubmitting] = useState(false);
   const tog = (k: "products" | "platforms", v: string) => sF(p => ({ ...p, [k]: p[k].includes(v) ? p[k].filter((x: string) => x !== v) : [...p[k], v] }));
-  const sub = async (e: React.FormEvent) => { e.preventDefault(); if (!f.title.trim()) return; setSubmitting(true); await onSubmit(f); setSubmitting(false); };
+  const sub = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!f.title.trim()) return;
+    setSubmitting(true);
+    try {
+      await onSubmit(f);
+    } catch {} finally {
+      setSubmitting(false);
+    }
+  };
   const I = "bg-[#0f0f1a] border border-surface-border rounded-lg px-3 py-2.5 text-[#e2e8f0] text-sm outline-none w-full focus:border-accent";
   const L = "text-[11px] font-semibold text-[#94a3b8] uppercase tracking-wider mb-1.5 block";
   return (
