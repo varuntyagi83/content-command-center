@@ -25,7 +25,7 @@ export default function Header({ onNewIdea }: { onNewIdea: () => void }) {
             <div className={`sync-dot ${syncStatus === "syncing" ? "syncing" : syncStatus === "error" ? "error" : "connected"}`} title={syncStatus === "idle" ? `Synced ${lastSync ? new Date(lastSync).toLocaleTimeString() : ""}` : syncStatus} />
             {syncStatus === "error" && <span className="text-[10px] text-[#f87171] font-semibold">Sync error</span>}
           </div>
-          <p className="text-[11px] text-[#64748b] uppercase tracking-widest mt-0.5">Voltic · AdForge · AI Training — Live Sync via Google Sheets</p>
+          <p className="text-[11px] text-[#64748b] uppercase tracking-widest mt-0.5">Voltic · AdForge · AI Training — Live Sync via{" "}<a href={process.env.NEXT_PUBLIC_SPREADSHEET_URL} target="_blank" rel="noopener noreferrer" className="text-[#6366f1] hover:text-[#a78bfa] transition-colors">Google Sheets</a></p>
         </div>
       </div>
       <div className="flex items-center gap-2 flex-wrap">
